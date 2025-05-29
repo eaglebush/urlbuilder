@@ -2,6 +2,7 @@ package urlbuilder
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -48,7 +49,8 @@ func (qs *QueryString) Build() string {
 			first = false
 			b.WriteString(k)
 			b.WriteByte('=')
-			b.WriteString(escape(v))
+			b.WriteString(url.QueryEscape(v))
+
 		}
 	} else {
 		for i, q := range qs.qrs {
@@ -57,7 +59,7 @@ func (qs *QueryString) Build() string {
 			}
 			b.WriteString(q.name)
 			b.WriteByte('=')
-			b.WriteString(escape(q.value))
+			b.WriteString(url.QueryEscape(q.value))
 		}
 	}
 	return b.String()

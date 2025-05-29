@@ -5,6 +5,7 @@ package urlbuilder
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -91,6 +92,52 @@ func NewUrlWithID(host, path string, id any, part ...UrlPart) *UrlBuilder {
 	return New(part...)
 }
 
+func (ub *UrlBuilder) getHostParts(host string) {
+	var (
+		scheme, path string
+		port         int
+		hostIsPure   bool
+	)
+
+	hostIsPure = true
+
+	// If the host was supplied with a valid url and it has parts, take its result
+	if r, err := url.Parse(host); err == nil {
+		if r.Host != "" {
+			host = r.Host // Modify host
+		}
+		// If it has scheme, this is not a pure host, so flag false
+		if r.Scheme != "" {
+			scheme = r.Scheme
+			hostIsPure = false
+		}
+		// If it has port other than what is standard, flag false
+		port, _ = strconv.Atoi(r.Port())
+		if port != 0 {
+			if !(scheme == "http" && port == 80 || scheme == "https" && port == 443) {
+				hostIsPure = false
+			}
+		}
+		// If it has a path, it is not a pure host, flag false
+		if r.Path != "" && r.Host != "" {
+			hostIsPure = false
+			path = r.Path
+		}
+	}
+	ub.host = host
+	if !hostIsPure {
+		if scheme != "" {
+			ub.scheme = scheme
+		}
+		if port != 0 {
+			ub.port = uint(port)
+		}
+		if path != "" {
+			ub.path = append(ub.path, path)
+		}
+	}
+}
+
 // Clone returns a new UrlBuilder copied from an existing one and applies additional UrlParts.
 func Clone(ub *UrlBuilder, part ...UrlPart) *UrlBuilder {
 	cloneUb := *ub
@@ -112,6 +159,7 @@ func Sch(sch string) UrlPart {
 func Host(h string) UrlPart {
 	return func(ub *UrlBuilder) error {
 		ub.host = h
+		ub.getHostParts(ub.host)
 		return nil
 	}
 }
@@ -296,11 +344,13 @@ func (ub *UrlBuilder) Build() string {
 	ub.host = strings.ReplaceAll(ub.host, "\"", "/")
 	ub.host, _ = strings.CutSuffix(ub.host, "/")
 
-	if ub.port == 0 {
-		switch ub.scheme {
-		case "https":
+	switch ub.scheme {
+	case "https":
+		if ub.port == 0 {
 			ub.port = 443
-		case "http":
+		}
+	case "http":
+		if ub.port == 0 {
 			ub.port = 80
 		}
 	}
@@ -320,7 +370,7 @@ func (ub *UrlBuilder) Build() string {
 	}
 
 	b.WriteString(ub.host)
-	if ub.port != 80 {
+	if !((ub.scheme == "http" && ub.port == 80) || (ub.scheme == "https" && ub.port == 443)) {
 		b.WriteByte(':')
 		b.WriteString(strconv.Itoa(int(ub.port)))
 	}
@@ -365,7 +415,7 @@ func (ub *UrlBuilder) Build() string {
 				first = false
 				b.WriteString(k)
 				b.WriteByte('=')
-				b.WriteString(escape(v))
+				b.WriteString(url.QueryEscape(v))
 			}
 		} else {
 			for i, q := range ub.query {
@@ -374,7 +424,7 @@ func (ub *UrlBuilder) Build() string {
 				}
 				b.WriteString(q.name)
 				b.WriteByte('=')
-				b.WriteString(escape(q.value))
+				b.WriteString(url.QueryEscape(q.value))
 			}
 		}
 		pathAppended = true

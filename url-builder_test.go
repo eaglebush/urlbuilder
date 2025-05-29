@@ -37,6 +37,10 @@ func TestBuild(t *testing.T) {
 	t.Logf("Host plus key: %s", ub8.Build())
 
 	t.Logf("Inline clone build: %s", ub8.Clone(Query("yes", "no")).Build())
+
+	ub9 := New(Host("http://localhost/ui"), Path("ever"))
+	t.Logf("Literal host: %s", ub9.Build())
+
 }
 
 func TestQueryStringBuild(t *testing.T) {
