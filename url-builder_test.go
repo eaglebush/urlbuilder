@@ -29,4 +29,7 @@ func TestBuild(t *testing.T) {
 
 	// Clone check
 	t.Logf("Clone check fr ub5: %s", ub5.Build())
+
+	ub7 := ub5.Clone(Path("added-path"))
+	t.Logf("Added path from ub5: %s", ub7.Build())
 }
