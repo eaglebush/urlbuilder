@@ -38,7 +38,7 @@ func TestBuild(t *testing.T) {
 
 	t.Logf("Inline clone build: %s", ub8.Clone(Query("yes", "no")).Build())
 
-	ub9 := New(Host("http://localhost/ui"), Path("ever"))
+	ub9 := New(Host("https://www.facebook.com/ui/from/u"), Path("ever"), Query("open", 1), ID(324))
 	t.Logf("Literal host: %s", ub9.Build())
 
 }

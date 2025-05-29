@@ -159,7 +159,7 @@ func Sch(sch string) UrlPart {
 func Host(h string) UrlPart {
 	return func(ub *UrlBuilder) error {
 		ub.host = h
-		ub.getHostParts(ub.host)
+		ub.getHostParts(ub.host) 
 		return nil
 	}
 }
