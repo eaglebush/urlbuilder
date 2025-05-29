@@ -264,6 +264,7 @@ func Fragment(f string) UrlPart {
 // 	return url
 // }
 
+// Build constructs the URL as a string. Returns an empty string if an error occurred.
 func (ub *UrlBuilder) Build() string {
 	if ub.scheme == "" {
 		ub.scheme = "https"
