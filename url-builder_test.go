@@ -35,4 +35,71 @@ func TestBuild(t *testing.T) {
 
 	ub8 := New(Host("localhost"), ID(12345))
 	t.Logf("Host plus key: %s", ub8.Build())
+
+	t.Logf("Inline clone build: %s", ub8.Clone(Query("yes", "no")).Build())
 }
+
+func BenchmarkSimpleURL(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NewSimpleUrl("example.com", "api/v1/users").Build()
+	}
+}
+
+func BenchmarkURLWithID(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NewSimpleUrlWithID("example.com", "api/v1/users", 12345).Build()
+	}
+}
+
+func BenchmarkURLWithQueryParams(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		New(
+			Host("example.com"),
+			Path("api/v1/search"),
+			Query("q", "golang"),
+			Query("page", 2),
+			Query("sort", "desc"),
+			Mode(QModeLast),
+		).Build()
+	}
+}
+
+func BenchmarkComplexURL(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		New(
+			Sch("http"),
+			Host("example.com"),
+			UsrPwd("user", "pass"),
+			Path("api"),
+			Path("v1"),
+			Path("resource"),
+			ID("abcd-1234"),
+			Query("filter", "active"),
+			Query("limit", 50),
+			Query("offset", 100),
+			Mode(QModeArray),
+			Port(8080),
+			Fragment("section"),
+		).Build()
+	}
+}
+
+// func BenchmarkComplexURL2(b *testing.B) {
+// 	for i := 0; i < b.N; i++ {
+// 		New(
+// 			Sch("http"),
+// 			Host("example.com"),
+// 			UsrPwd("user", "pass"),
+// 			Path("api"),
+// 			Path("v1"),
+// 			Path("resource"),
+// 			ID("abcd-1234"),
+// 			Query("filter", "active"),
+// 			Query("limit", 50),
+// 			Query("offset", 100),
+// 			Mode(QModeArray),
+// 			Port(8080),
+// 			Fragment("section"),
+// 		).Build2()
+// 	}
+// }
