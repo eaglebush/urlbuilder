@@ -198,6 +198,7 @@ func (ub *UrlBuilder) Build() string {
 		}
 		url += auth + "@"
 	}
+	url += ub.host
 	if ub.port != 80 {
 		url += ":" + strconv.Itoa(int(ub.port))
 	}

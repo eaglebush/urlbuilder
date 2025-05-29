@@ -32,4 +32,7 @@ func TestBuild(t *testing.T) {
 
 	ub7 := ub5.Clone(Path("added-path"))
 	t.Logf("Added path from ub5: %s", ub7.Build())
+
+	ub8 := New(Host("localhost"), ID(12345))
+	t.Logf("Host plus key: %s", ub8.Build())
 }
