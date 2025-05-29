@@ -13,8 +13,21 @@ type (
 	// UrlPart represents a function that modifies a UrlBuilder.
 	UrlPart func(*UrlBuilder) error
 
+	// UrlPart represents a function that modifies a UrlBuilder.
+	QueryPart func(*QueryString) error
+
 	// QueryMode determines how query parameters are handled when duplicates are present.
 	QueryMode int
+
+	// QueryString holds the components of a query string collection and provides method to construct it.
+	//
+	// This is a helper struct to create independent query string values to be used as a value of the Query url part function in UrlBuilder.
+	// Query strings are sometimes encrypted and encoded to avoid parameter tampering.
+	QueryString struct {
+		mode QueryMode
+		qrs  []query
+		err  error
+	}
 
 	query struct {
 		name  string

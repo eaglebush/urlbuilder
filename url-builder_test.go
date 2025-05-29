@@ -39,6 +39,16 @@ func TestBuild(t *testing.T) {
 	t.Logf("Inline clone build: %s", ub8.Clone(Query("yes", "no")).Build())
 }
 
+func TestQueryStringBuild(t *testing.T) {
+	qs := NewQueryString(
+		QModeArray,
+		Nv("last", "yes"),
+		Nv("first", "no"),
+		Nv("country", "Philippines"),
+	)
+	t.Logf("Query string build: %s", qs.Build())
+}
+
 func BenchmarkSimpleURL(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		NewUrlWithPath("example.com", "api/v1/users").Build()
