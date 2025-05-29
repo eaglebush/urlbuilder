@@ -58,13 +58,18 @@ func New(part ...UrlPart) *UrlBuilder {
 }
 
 // NewSimpleUrl returns a UrlBuilder with just a host and a path.
-func NewSimpleUrl(host, path string) *UrlBuilder {
-	return New(Host(host), Path(path))
+func NewSimpleUrl(host, path string, part ...UrlPart) *UrlBuilder {
+	part = append(part, Host(host))
+	part = append(part, Path(path))
+	return New(part...)
 }
 
 // NewSimpleUrlWithID returns a UrlBuilder with a host, path, and ID segment.
-func NewSimpleUrlWithID(host, path string, id any) *UrlBuilder {
-	return New(Host(host), Path(path), ID(id))
+func NewSimpleUrlWithID(host, path string, id any, part ...UrlPart) *UrlBuilder {
+	part = append(part, Host(host))
+	part = append(part, Path(path))
+	part = append(part, ID(id))
+	return New(part...)
 }
 
 // Clone returns a new UrlBuilder copied from an existing one and applies additional UrlParts.

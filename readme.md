@@ -1,18 +1,17 @@
 # urlbuilder
 
-**urlbuilder** is a composable and expressive URL builder library for Go. It provides a fluent API to construct URLs with minimal boilerplate and full flexibility.
-
----
+`urlbuilder` is a Go package for building URLs in a flexible, composable, and readable way. It supports schemes, hosts, ports, paths, IDs, query parameters (with deduplication strategies), user credentials, and fragments.
 
 ## Features
 
-- Composable URL parts using function-based configuration
-- Support for all common URL components: scheme, host, user/password, path, query, fragment
-- Query handling modes: array, last value wins, error on duplicates
-- Built-in cloning and shortcut constructors
-- Clean, idiomatic Go interface
-
----
+- Compose URLs using functional options (`UrlPart`)
+- Support for basic auth credentials
+- Support for query deduplication modes:
+  - `QModeArray`: keep all query parameters (duplicates allowed)
+  - `QModeLast`: keep only the last value for duplicate names
+  - `QModeError`: fail on duplicate query names
+- Cloneable URL builders
+- Minimal allocations (optimized with `strings.Builder`)
 
 ## Installation
 
@@ -20,153 +19,103 @@
 go get github.com/eaglebush/urlbuilder
 ```
 
----
+## Usage
 
-## Basic Usage
-
-```go
-package main
-
-import (
-    "fmt"
-    "github.com/eaglebush/urlbuilder"
-)
-
-func main() {
-    url := urlbuilder.New(
-        urlbuilder.Sch("https"),
-        urlbuilder.Host("example.com"),
-        urlbuilder.Path("api"),
-        urlbuilder.Path("users"),
-        urlbuilder.ID(42),
-        urlbuilder.Query("active", true),
-        urlbuilder.Fragment("details"),
-    ).Build()
-
-    fmt.Println(url)
-    // Output: https://example.com/api/users/42?active=true#details
-}
-```
-
----
-
-## Query Modes
-
-### ▶ QModeArray
-
-Allows repeated parameters:
+### Basic URL
 
 ```go
+import "github.com/eaglebush/urlbuilder"
+
 url := urlbuilder.New(
-    urlbuilder.Host("example.com"),
-    urlbuilder.Query("x", 1),
-    urlbuilder.Query("x", 2),
-    urlbuilder.Mode(urlbuilder.QModeArray),
-).Build()
-
-fmt.Println(url)
-// Output: https://example.com/?x=1&x=2
-```
-
-### ▶ QModeLast
-
-Keeps only the last value for each query key:
-
-```go
-url := urlbuilder.New(
-    urlbuilder.Host("example.com"),
-    urlbuilder.Query("x", 1),
-    urlbuilder.Query("x", 2),
-    urlbuilder.Mode(urlbuilder.QModeLast),
-).Build()
-
-fmt.Println(url)
-// Output: https://example.com/?x=2
-```
-
-### ▶ QModeError
-
-Throws an error on duplicate query keys:
-
-```go
-ub := urlbuilder.New(
-    urlbuilder.Host("example.com"),
-    urlbuilder.Query("x", 1),
-    urlbuilder.Query("x", 2),
-    urlbuilder.Mode(urlbuilder.QModeError),
-)
-
-url := ub.Build()
-
-if err := ub.Err(); err != nil {
-    fmt.Println("Error:", err)
-}
-// Output: Error: duplicate query name found
-```
-
----
-
-## Cloning URLs
-
-Clone an existing builder and add more parts:
-
-```go
-base := urlbuilder.New(
+    urlbuilder.Sch("https"),
     urlbuilder.Host("example.com"),
     urlbuilder.Path("api"),
-)
+    urlbuilder.Path("v1"),
+    urlbuilder.ID(123),
+    urlbuilder.Query("q", "go"),
+).Build()
 
-extended := base.Clone(
-    urlbuilder.Path("products"),
-    urlbuilder.ID(88),
-)
-
-fmt.Println(extended.Build())
-// Output: https://example.com/api/products/88
-```
-
----
-
-## Convenience Functions
-
-### ▶ NewSimpleUrl
-
-```go
-url := urlbuilder.NewSimpleUrl("example.com", "dashboard").Build()
 fmt.Println(url)
-// Output: https://example.com/dashboard
+// Output: https://example.com/api/v1/123?q=go
 ```
 
-### ▶ NewSimpleUrlWithID
+### Simple Helper
 
 ```go
-url := urlbuilder.NewSimpleUrlWithID("example.com", "user", 789).Build()
+url := urlbuilder.NewSimpleUrl("example.com", "status").Build()
 fmt.Println(url)
-// Output: https://example.com/user/789
+// Output: https://example.com/status
 ```
 
----
-
-## String Conversion
+### With Authentication
 
 ```go
-ub := urlbuilder.New(
+url := urlbuilder.New(
+    urlbuilder.Sch("https"),
+    urlbuilder.Host("secure.example.com"),
+    urlbuilder.UsrPwd("admin", "secret"),
+    urlbuilder.Path("dashboard"),
+).Build()
+
+fmt.Println(url)
+// Output: https://admin:secret@secure.example.com/dashboard
+```
+
+### Query Deduplication Modes
+
+```go
+url := urlbuilder.New(
     urlbuilder.Host("example.com"),
-    urlbuilder.Path("login"),
-)
+    urlbuilder.Path("search"),
+    urlbuilder.Mode(urlbuilder.QModeLast),
+    urlbuilder.Query("q", "first"),
+    urlbuilder.Query("q", "last"),
+).Build()
 
-fmt.Println(ub.String())
-// Output: https://example.com/login
+fmt.Println(url)
+// Output: https://example.com/search?q=last
 ```
 
----
+### Cloning and Modifying
+
+```go
+base := urlbuilder.NewSimpleUrl("example.com", "items", urlbuilder.Query("sort", "asc"))
+filtered := base.Clone(urlbuilder.Query("category", "books"))
+
+fmt.Println(filtered.Build())
+// Output: https://example.com/items?sort=asc&category=books
+```
+
+## API Reference
+
+### Constructor
+
+- `New(...UrlPart) *UrlBuilder`
+- `NewSimpleUrl(host, path string, ...UrlPart) *UrlBuilder`
+- `NewSimpleUrlWithID(host, path string, id any, ...UrlPart) *UrlBuilder`
+- `Clone(ub *UrlBuilder, ...UrlPart) *UrlBuilder`
+
+### UrlPart Functions
+
+- `Sch(string)` - set scheme
+- `Host(string)` - set host
+- `Port(uint)` - set port
+- `Path(string)` - add path segment
+- `ID(any)` - set ID segment
+- `Usr(string)` - set username
+- `Pwd(string)` - set password
+- `UsrPwd(string, string)` - set both username and password
+- `Query(string, any)` - add query parameter
+- `Fragment(string)` - set fragment
+- `Mode(QueryMode)` - set query deduplication mode
+
+### Methods
+
+- `(*UrlBuilder) Build() string` - build the URL
+- `(*UrlBuilder) String() string` - alias for `Build()`
+- `(*UrlBuilder) Clone(...UrlPart) *UrlBuilder`
+- `(*UrlBuilder) Err() error`
 
 ## License
 
-MIT License
-
----
-
-## Author
-
-[eaglebush]
+MIT
