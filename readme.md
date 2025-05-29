@@ -12,6 +12,7 @@
   - `QModeError`: fail on duplicate query names
 - Cloneable URL builders
 - Minimal allocations (optimized with `strings.Builder`)
+- Support for independent query string generation
 
 ## Installation
 
@@ -95,6 +96,7 @@ fmt.Println(filtered.Build())
 - `NewUrlWithPath(host, path string, id any, ...UrlPart) *UrlBuilder` (Convenience function)
 - `NewUrlWithID(host, path string, id any, ...UrlPart) *UrlBuilder` (Convenience function)
 - `Clone(ub *UrlBuilder, ...UrlPart) *UrlBuilder`
+- `NewQueryString(mode QueryMode, qp ...QueryPart) *QueryString` (Independent query string creation)
 
 ### UrlPart Functions
 
@@ -110,12 +112,43 @@ fmt.Println(filtered.Build())
 - `Frag(string)` - set fragment
 - `Mode(QueryMode)` - set query deduplication mode
 
-### Methods
+
+### UrlBuilder Methods
 
 - `(*UrlBuilder) Build() string` - build the URL
 - `(*UrlBuilder) String() string` - alias for `Build()`
 - `(*UrlBuilder) Clone(...UrlPart) *UrlBuilder`
 - `(*UrlBuilder) Err() error`
+
+### QueryPart Functions
+
+- `Nv(string, any)` - add query parameter
+
+### QueryString Methods
+
+- `(*UrlBuilder) Build() string` - build the query string
+- `(*UrlBuilder) String() string` - alias for `Build()`
+
+### UrlBuilder with QueryString Sample
+This allows the UrlBuilder to accept a query from a ready built encoded query string.
+```go
+url := urlbuilder.NewUrlWithPath(
+	"example.com",
+	"protected",
+	urlbuilder.Query(
+		"q",
+		MyEncyptedEncoder(
+			urlbuilder.NewQueryString(urlbuilder.QModeArray,
+			urlbuilder.Nv("secret", "mysecretvalue"),
+			urlbuilder.Nv("for", "sherlock"),
+			urlbuilder.Nv("execute", "order-66"),
+			urlbuilder.Nv("clean", true),
+		).String(),
+	)),
+).Build()
+fmt.Println(url)
+// Output: https://example.com/protected/?q=<garbled>
+```
 
 ## License
 
