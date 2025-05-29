@@ -172,9 +172,14 @@ func (ub *UrlBuilder) Build() string {
 		ub.scheme = "https"
 	}
 	ub.scheme = strings.ToLower(ub.scheme)
+
+	// Host: Change slashes and sanitize
 	if ub.host == "" {
 		ub.host = "localhost"
 	}
+	ub.host = strings.ReplaceAll(ub.host, "\"", "/")
+	ub.host, _ = strings.CutSuffix(ub.host, "/")
+
 	if ub.port == 0 {
 		switch ub.scheme {
 		case "https":
@@ -193,8 +198,6 @@ func (ub *UrlBuilder) Build() string {
 		}
 		url += auth + "@"
 	}
-
-	url += ub.host
 	if ub.port != 80 {
 		url += ":" + strconv.Itoa(int(ub.port))
 	}
