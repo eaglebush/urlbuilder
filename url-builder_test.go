@@ -18,10 +18,10 @@ func TestBuild(t *testing.T) {
 	ub3 := Clone(ub, Path("retrieve"), ID("key1"), Query("un", "zaldybaguinon"), Query("work", "ISD Manager"), UsrPwd("admin", "fantastic4"))
 	t.Logf("With user, password, path and key: %s", ub3.Build())
 
-	ub4 := NewSimpleUrl("localhost", "/path/")
+	ub4 := NewUrlWithPath("localhost", "/path/")
 	t.Logf("New Simple Url: %s", ub4.Build())
 
-	ub5 := NewSimpleUrlWithID("localhost", "/path/", "12345")
+	ub5 := NewUrlWithID("localhost", "/path/", "12345")
 	t.Logf("New Simple Url With ID: %s", ub5.Build())
 
 	ub6 := ub5.Clone(Query("fn", "Elizalde"))
@@ -41,13 +41,13 @@ func TestBuild(t *testing.T) {
 
 func BenchmarkSimpleURL(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		NewSimpleUrl("example.com", "api/v1/users").Build()
+		NewUrlWithPath("example.com", "api/v1/users").Build()
 	}
 }
 
 func BenchmarkURLWithID(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		NewSimpleUrlWithID("example.com", "api/v1/users", 12345).Build()
+		NewUrlWithID("example.com", "api/v1/users", 12345).Build()
 	}
 }
 
@@ -79,7 +79,7 @@ func BenchmarkComplexURL(b *testing.B) {
 			Query("offset", 100),
 			Mode(QModeArray),
 			Port(8080),
-			Fragment("section"),
+			Frag("section"),
 		).Build()
 	}
 }

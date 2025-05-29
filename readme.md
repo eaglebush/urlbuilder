@@ -42,9 +42,9 @@ fmt.Println(url)
 ### Simple Helper
 
 ```go
-url := urlbuilder.NewSimpleUrl("example.com", "status").Build()
+url := urlbuilder.NewUrlWithPath("example.com", "status").Build()
 fmt.Println(url)
-// Output: https://example.com/status
+// Output: https://example.com/status/
 ```
 
 ### With Authentication
@@ -58,7 +58,7 @@ url := urlbuilder.New(
 ).Build()
 
 fmt.Println(url)
-// Output: https://admin:secret@secure.example.com/dashboard
+// Output: https://admin:secret@secure.example.com/dashboard/
 ```
 
 ### Query Deduplication Modes
@@ -73,17 +73,17 @@ url := urlbuilder.New(
 ).Build()
 
 fmt.Println(url)
-// Output: https://example.com/search?q=last
+// Output: https://example.com/search/?q=last
 ```
 
 ### Cloning and Modifying
 
 ```go
-base := urlbuilder.NewSimpleUrl("example.com", "items", urlbuilder.Query("sort", "asc"))
+base := urlbuilder.NewUrl("example.com", "items", urlbuilder.Query("sort", "asc"))
 filtered := base.Clone(urlbuilder.Query("category", "books"))
 
 fmt.Println(filtered.Build())
-// Output: https://example.com/items?sort=asc&category=books
+// Output: https://example.com/items/?sort=asc&category=books
 ```
 
 ## API Reference
@@ -91,8 +91,9 @@ fmt.Println(filtered.Build())
 ### Constructor
 
 - `New(...UrlPart) *UrlBuilder`
-- `NewSimpleUrl(host, path string, ...UrlPart) *UrlBuilder`
-- `NewSimpleUrlWithID(host, path string, id any, ...UrlPart) *UrlBuilder`
+- `NewUrl(host, path string, ...UrlPart) *UrlBuilder` (Convenience function)
+- `NewUrlWithPath(host, path string, id any, ...UrlPart) *UrlBuilder` (Convenience function)
+- `NewUrlWithID(host, path string, id any, ...UrlPart) *UrlBuilder` (Convenience function)
 - `Clone(ub *UrlBuilder, ...UrlPart) *UrlBuilder`
 
 ### UrlPart Functions
@@ -106,7 +107,7 @@ fmt.Println(filtered.Build())
 - `Pwd(string)` - set password
 - `UsrPwd(string, string)` - set both username and password
 - `Query(string, any)` - add query parameter
-- `Fragment(string)` - set fragment
+- `Frag(string)` - set fragment
 - `Mode(QueryMode)` - set query deduplication mode
 
 ### Methods

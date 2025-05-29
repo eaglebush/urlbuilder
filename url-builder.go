@@ -57,15 +57,21 @@ func New(part ...UrlPart) *UrlBuilder {
 	return &ub
 }
 
-// NewSimpleUrl returns a UrlBuilder with just a host and a path.
-func NewSimpleUrl(host, path string, part ...UrlPart) *UrlBuilder {
+// NewUrl returns a UrlBuilder with just a host.
+func NewUrl(host string, part ...UrlPart) *UrlBuilder {
+	part = append(part, Host(host))
+	return New(part...)
+}
+
+// NewUrlWithPath returns a UrlBuilder with just a host and a path.
+func NewUrlWithPath(host, path string, part ...UrlPart) *UrlBuilder {
 	part = append(part, Host(host))
 	part = append(part, Path(path))
 	return New(part...)
 }
 
-// NewSimpleUrlWithID returns a UrlBuilder with a host, path, and ID segment.
-func NewSimpleUrlWithID(host, path string, id any, part ...UrlPart) *UrlBuilder {
+// NewUrlWithID returns a UrlBuilder with a host, path, and ID segment.
+func NewUrlWithID(host, path string, id any, part ...UrlPart) *UrlBuilder {
 	part = append(part, Host(host))
 	part = append(part, Path(path))
 	part = append(part, ID(id))
@@ -163,8 +169,8 @@ func Query(name string, value any) UrlPart {
 	}
 }
 
-// Fragment sets the URL fragment (part after #).
-func Fragment(f string) UrlPart {
+// Frag sets the URL fragment (part after #).
+func Frag(f string) UrlPart {
 	return func(ub *UrlBuilder) error {
 		ub.fragment = f
 		return nil
