@@ -86,6 +86,26 @@ filtered := base.Clone(urlbuilder.Query("category", "books"))
 fmt.Println(filtered.Build())
 // Output: https://example.com/items/?sort=asc&category=books
 ```
+### UrlBuilder with QueryString Sample
+This allows the UrlBuilder to accept a query from a ready built encoded query string.
+```go
+url := urlbuilder.NewUrlWithPath(
+	"example.com",
+	"protected",
+	urlbuilder.Query(
+		"q",
+		MyEncyptedEncoder(
+			urlbuilder.NewQueryString(urlbuilder.QModeArray,
+			urlbuilder.Nv("secret", "mysecretvalue"),
+			urlbuilder.Nv("for", "sherlock"),
+			urlbuilder.Nv("execute", "order-66"),
+			urlbuilder.Nv("clean", true),
+		).String(),
+	)),
+).Build()
+fmt.Println(url)
+// Output: https://example.com/protected/?q=<garbled>
+```
 
 ## API Reference
 
@@ -129,26 +149,6 @@ fmt.Println(filtered.Build())
 - `(*UrlBuilder) Build() string` - build the query string
 - `(*UrlBuilder) String() string` - alias for `Build()`
 
-### UrlBuilder with QueryString Sample
-This allows the UrlBuilder to accept a query from a ready built encoded query string.
-```go
-url := urlbuilder.NewUrlWithPath(
-	"example.com",
-	"protected",
-	urlbuilder.Query(
-		"q",
-		MyEncyptedEncoder(
-			urlbuilder.NewQueryString(urlbuilder.QModeArray,
-			urlbuilder.Nv("secret", "mysecretvalue"),
-			urlbuilder.Nv("for", "sherlock"),
-			urlbuilder.Nv("execute", "order-66"),
-			urlbuilder.Nv("clean", true),
-		).String(),
-	)),
-).Build()
-fmt.Println(url)
-// Output: https://example.com/protected/?q=<garbled>
-```
 
 ## License
 
