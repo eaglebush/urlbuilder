@@ -24,7 +24,7 @@ func TestBuild(t *testing.T) {
 	ub4 := NewUrlWithPath("localhost", "/path/")
 	t.Logf("New Simple Url: %s", ub4.Build())
 
-	ub5 := NewUrlWithID("localhost", "/path/", "12345")
+	ub5 := NewUrlWithID("localhost", "/path/", "12345", Path("udoms"))
 	t.Logf("New Simple Url With ID: %s", ub5.Build())
 
 	ub6 := ub5.Clone(Query("fn", "Elizalde"))

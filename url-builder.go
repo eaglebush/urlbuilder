@@ -76,23 +76,29 @@ func New(part ...UrlPart) *UrlBuilder {
 
 // NewUrl returns a UrlBuilder with just a host.
 func NewUrl(host string, part ...UrlPart) *UrlBuilder {
-	part = append(part, Host(host))
-	return New(part...)
+	up := make([]UrlPart, 0, 7)
+	up = append(up, Host(host))
+	up = append(up, part...)
+	return New(up...)
 }
 
 // NewUrlWithPath returns a UrlBuilder with just a host and a path.
 func NewUrlWithPath(host, path string, part ...UrlPart) *UrlBuilder {
-	part = append(part, Host(host))
-	part = append(part, Path(path))
-	return New(part...)
+	up := make([]UrlPart, 0, 7)
+	up = append(up, Host(host))
+	up = append(up, Path(path))
+	up = append(up, part...)
+	return New(up...)
 }
 
 // NewUrlWithID returns a UrlBuilder with a host, path, and ID segment.
 func NewUrlWithID(host, path string, id any, part ...UrlPart) *UrlBuilder {
-	part = append(part, Host(host))
-	part = append(part, Path(path))
-	part = append(part, ID(id))
-	return New(part...)
+	up := make([]UrlPart, 0, 7)
+	up = append(up, Host(host))
+	up = append(up, Path(path))
+	up = append(up, ID(id))
+	up = append(up, part...)
+	return New(up...)
 }
 
 func (ub *UrlBuilder) getHostParts(host string) {
