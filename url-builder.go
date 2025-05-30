@@ -64,7 +64,10 @@ const (
 
 // New creates a new UrlBuilder with the provided UrlPart modifiers.
 func New(part ...UrlPart) *UrlBuilder {
-	ub := UrlBuilder{}
+	ub := UrlBuilder{
+		query: make([]query, 0, 3), // initializing to a capacity minimizes reallocations
+		path:  make([]string, 0, 7),
+	}
 	for _, p := range part {
 		p(&ub)
 	}
@@ -100,6 +103,7 @@ func (ub *UrlBuilder) getHostParts(host string) {
 	)
 
 	hostIsPure = true
+	host = strings.ReplaceAll(host, "\"", "/")
 
 	// If the host was supplied with a valid url and it has parts, take its result
 	if r, err := url.Parse(host); err == nil {
@@ -125,9 +129,16 @@ func (ub *UrlBuilder) getHostParts(host string) {
 		if r.Path != "" && r.Host != "" {
 			hostIsPure = false
 			path = r.Path
+			// Remove the last path that has no /. It's considered a key in REST
+			if !strings.HasSuffix(path, "/") {
+				if idx := strings.LastIndex(path, "/"); idx != -1 {
+					path = path[:idx+1]
+				}
+			}
 		}
 	}
-	ub.host = host
+
+	ub.host, _ = strings.CutSuffix(host, "/")
 	if !hostIsPure {
 		if scheme != "" {
 			ub.scheme = scheme
@@ -161,8 +172,7 @@ func Sch(sch string) UrlPart {
 // Host sets the host (domain or IP) of the URL.
 func Host(h string) UrlPart {
 	return func(ub *UrlBuilder) error {
-		ub.host = h
-		ub.getHostParts(ub.host)
+		ub.getHostParts(h)
 		return nil
 	}
 }
@@ -344,8 +354,6 @@ func (ub *UrlBuilder) Build() string {
 	if ub.host == "" {
 		ub.host = "localhost"
 	}
-	ub.host = strings.ReplaceAll(ub.host, "\"", "/")
-	ub.host, _ = strings.CutSuffix(ub.host, "/")
 
 	switch ub.scheme {
 	case "https":

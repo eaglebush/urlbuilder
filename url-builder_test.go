@@ -3,19 +3,22 @@ package urlbuilder
 import "testing"
 
 func TestBuild(t *testing.T) {
-	ub := New(Host("localhost"), Port(5666))
-	t.Logf("Simple: %s", ub.Build())
+	ub := New(Port(5666))
+	t.Logf("No host: %s", ub.Build())
 
-	ub1 := Clone(ub, Query("un", "zaldy.baguinon"))
+	ub0 := New(Host("localhost.com"), Port(5666))
+	t.Logf("Simple: %s", ub0.Build())
+
+	ub1 := Clone(ub0, Query("un", "zaldy.baguinon"))
 	t.Logf("With Query String: %s", ub1.Build())
 
-	ub2 := Clone(ub, Path("retrieve"), ID("key1"), Query("un", "zaldybaguinon"), Query("work", "ISD Manager"))
-	t.Logf("With path and key: %s", ub2.Build())
+	ub2 := Clone(ub0, Path("retrieve"), ID("key1"), Query("un", "zaldy baguinon"), Query("work", "ISD Manager"))
+	t.Logf("With path, key and query with spaces: %s", ub2.Build())
 
 	// Clone check
-	t.Logf("Clone check: %s", ub.Build())
+	t.Logf("Clone check: %s", ub0.Build())
 
-	ub3 := Clone(ub, Path("retrieve"), ID("key1"), Query("un", "zaldybaguinon"), Query("work", "ISD Manager"), UsrPwd("admin", "fantastic4"))
+	ub3 := Clone(ub0, Path("retrieve"), ID("key1"), Query("un", "zaldybaguinon"), Query("work", "ISD Manager"), UsrPwd("admin", "fantastic4"))
 	t.Logf("With user, password, path and key: %s", ub3.Build())
 
 	ub4 := NewUrlWithPath("localhost", "/path/")
