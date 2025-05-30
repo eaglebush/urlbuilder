@@ -105,7 +105,6 @@ func (ub *UrlBuilder) getHostParts(host string) {
 	var (
 		scheme, path string
 		port         int
-		schMdfd      bool
 	)
 
 	host = strings.ReplaceAll(host, "\"", "/")
@@ -121,8 +120,8 @@ func (ub *UrlBuilder) getHostParts(host string) {
 		// If it has scheme, this is not a pure host, so flag false
 		if r.Scheme == "http" || r.Scheme == "https" {
 			scheme = r.Scheme
-			schMdfd = true
 		}
+
 		// If it has port other than what is standard, flag false
 		port, _ = strconv.Atoi(r.Port())
 		if port != 0 {
@@ -148,14 +147,12 @@ func (ub *UrlBuilder) getHostParts(host string) {
 		host = pvhost[:idx]
 		port, _ = strconv.Atoi(pvhost[idx+1:])
 	}
+	ub.host, _ = strings.CutSuffix(host, "/")
 	if port != 0 {
 		ub.port = uint(port)
 	}
-	ub.host, _ = strings.CutSuffix(host, "/")
-	if !schMdfd {
-		if scheme != "" {
-			ub.scheme = scheme
-		}
+	if scheme != "" {
+		ub.scheme = scheme
 	}
 	if path != "" {
 		ub.path = append(ub.path, path)
