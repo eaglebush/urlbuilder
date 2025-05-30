@@ -104,7 +104,10 @@ func (ub *UrlBuilder) getHostParts(host string) {
 	// If the host was supplied with a valid url and it has parts, take its result
 	if r, err := url.Parse(host); err == nil {
 		if r.Host != "" {
-			host = r.Host // Modify host
+			host = r.Host
+			if idx := strings.Index(host, ":"); idx != -1 {
+				host = host[:idx] // Modify host
+			}
 		}
 		// If it has scheme, this is not a pure host, so flag false
 		if r.Scheme != "" {
@@ -159,7 +162,7 @@ func Sch(sch string) UrlPart {
 func Host(h string) UrlPart {
 	return func(ub *UrlBuilder) error {
 		ub.host = h
-		ub.getHostParts(ub.host) 
+		ub.getHostParts(ub.host)
 		return nil
 	}
 }
