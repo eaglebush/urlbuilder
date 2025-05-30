@@ -126,7 +126,7 @@ func (ub *UrlBuilder) getHostParts(host string) {
 		// If it has port other than what is standard, flag false
 		port, _ = strconv.Atoi(r.Port())
 		if port != 0 {
-			if !(scheme == "http" && port == 80 || scheme == "https" && port == 443) {
+			if scheme == "http" && port == 80 || scheme == "https" && port == 443 {
 				port = 0
 			}
 		}
