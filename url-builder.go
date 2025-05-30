@@ -105,10 +105,9 @@ func (ub *UrlBuilder) getHostParts(host string) {
 	var (
 		scheme, path string
 		port         int
-		hostIsPure   bool
+		schMdfd      bool
 	)
 
-	hostIsPure = true
 	host = strings.ReplaceAll(host, "\"", "/")
 
 	// If the host was supplied with a valid url and it has parts, take its result
@@ -120,20 +119,19 @@ func (ub *UrlBuilder) getHostParts(host string) {
 			}
 		}
 		// If it has scheme, this is not a pure host, so flag false
-		if r.Scheme != "" {
+		if r.Scheme == "http" || r.Scheme == "https" {
 			scheme = r.Scheme
-			hostIsPure = false
+			schMdfd = true
 		}
 		// If it has port other than what is standard, flag false
 		port, _ = strconv.Atoi(r.Port())
 		if port != 0 {
 			if !(scheme == "http" && port == 80 || scheme == "https" && port == 443) {
-				hostIsPure = false
+				port = 0
 			}
 		}
 		// If it has a path, it is not a pure host, flag false
 		if r.Path != "" && r.Host != "" {
-			hostIsPure = false
 			path = r.Path
 			// Remove the last path that has no /. It's considered a key in REST
 			if !strings.HasSuffix(path, "/") {
@@ -144,17 +142,23 @@ func (ub *UrlBuilder) getHostParts(host string) {
 		}
 	}
 
+	// Additional stripping of port
+	if idx := strings.Index(host, ":"); idx != -1 {
+		pvhost := host
+		host = pvhost[:idx]
+		port, _ = strconv.Atoi(pvhost[idx+1:])
+	}
+	if port != 0 {
+		ub.port = uint(port)
+	}
 	ub.host, _ = strings.CutSuffix(host, "/")
-	if !hostIsPure {
+	if !schMdfd {
 		if scheme != "" {
 			ub.scheme = scheme
 		}
-		if port != 0 {
-			ub.port = uint(port)
-		}
-		if path != "" {
-			ub.path = append(ub.path, path)
-		}
+	}
+	if path != "" {
+		ub.path = append(ub.path, path)
 	}
 }
 
@@ -170,6 +174,9 @@ func Clone(ub *UrlBuilder, part ...UrlPart) *UrlBuilder {
 // Sch sets the scheme (e.g., "http", "https") of the URL.
 func Sch(sch string) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if sch == "" {
+			return nil
+		}
 		ub.scheme = sch
 		return nil
 	}
@@ -178,6 +185,9 @@ func Sch(sch string) UrlPart {
 // Host sets the host (domain or IP) of the URL.
 func Host(h string) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if h == "" {
+			return nil
+		}
 		ub.getHostParts(h)
 		return nil
 	}
@@ -186,6 +196,9 @@ func Host(h string) UrlPart {
 // Usr sets the username for basic authentication.
 func Usr(u string) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if u == "" {
+			return nil
+		}
 		ub.user = u
 		return nil
 	}
@@ -194,6 +207,9 @@ func Usr(u string) UrlPart {
 // Pwd sets the password for basic authentication.
 func Pwd(p string) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if p == "" {
+			return nil
+		}
 		ub.password = p
 		return nil
 	}
@@ -202,6 +218,9 @@ func Pwd(p string) UrlPart {
 // UsrPwd sets both the username and password for basic authentication.
 func UsrPwd(usr, pwd string) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if usr == "" || pwd == "" {
+			return nil
+		}
 		ub.user = usr
 		ub.password = pwd
 		return nil
@@ -211,6 +230,9 @@ func UsrPwd(usr, pwd string) UrlPart {
 // Path appends a path segment to the URL.
 func Path(path string) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if path == "" {
+			return nil
+		}
 		ub.path = append(ub.path, path)
 		return nil
 	}
@@ -219,6 +241,9 @@ func Path(path string) UrlPart {
 // ID appends a single ID segment to the end of the URL path.
 func ID(id any) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if id == "" {
+			return nil
+		}
 		ub.id = fmt.Sprint(id)
 		return nil
 	}
@@ -227,6 +252,9 @@ func ID(id any) UrlPart {
 // Port sets the port number of the URL.
 func Port(port uint) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if port == 0 {
+			return nil
+		}
 		ub.port = port
 		return nil
 	}
@@ -243,6 +271,9 @@ func Mode(mode QueryMode) UrlPart {
 // Query appends a query parameter to the URL.
 func Query(name string, value any) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if name == "" {
+			return nil
+		}
 		v := fmt.Sprint(value)
 		ub.query = append(ub.query, query{name: name, value: v})
 		return nil
@@ -252,6 +283,9 @@ func Query(name string, value any) UrlPart {
 // Frag sets the URL fragment (part after #).
 func Frag(f string) UrlPart {
 	return func(ub *UrlBuilder) error {
+		if f == "" {
+			return nil
+		}
 		ub.fragment = f
 		return nil
 	}
@@ -394,11 +428,16 @@ func (ub *UrlBuilder) Build() string {
 
 	if len(ub.path) > 0 {
 		for _, segment := range ub.path {
+			if segment == "" {
+				continue
+			}
 			b.WriteByte('/')
 			segment = strings.ReplaceAll(segment, "\"", "/")
 			segment, _ = strings.CutPrefix(segment, "/")
 			segment, _ = strings.CutSuffix(segment, "/")
-			b.WriteString(segment)
+			if segment != "" {
+				b.WriteString(segment)
+			}
 		}
 	}
 
