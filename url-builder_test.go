@@ -50,14 +50,17 @@ func TestBuild(t *testing.T) {
 }
 
 func TestSingle(t *testing.T) {
-	ub8 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"))
-	t.Logf("Host with port and blank first path: %s", ub8.Build())
+	// ub8 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"))
+	// t.Logf("Host with port and blank first path: %s", ub8.Build())
 
-	ub9 := New(Host("https://www.facebook.com:1500/ui/from/u"), Path("ever"), Query("open", 1), ID(324))
-	t.Logf("Literal host: %s", ub9.Build())
+	// ub9 := New(Host("https://www.facebook.com:1500/ui/from/u"), Path("ever"), Query("open", 1), ID(324))
+	// t.Logf("Literal host: %s", ub9.Build())
 
-	ub10 := NewUrlWithPath("http://localhost:3000", "", Path("/grpperm/"))
-	t.Logf("Host with scheme and port and blank first path: %s", ub10.Build())
+	// ub10 := NewUrlWithPath("http://localhost:3000", "", Path("/grpperm/"))
+	// t.Logf("Host with scheme and port and blank first path: %s", ub10.Build())
+
+	ub11 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"), Sch("http"))
+	t.Logf("Host with scheme and port and blank first path: %s", ub11.Build())
 }
 
 func TestQueryStringBuild(t *testing.T) {
