@@ -52,11 +52,11 @@ type (
 )
 
 const (
-	// QModeArray keeps all query parameters, allowing duplicates (e.g., ?x=1&x=2).
-	QModeArray QueryMode = iota
+	// QModeLast keeps only the last value of duplicate query parameter names. This is the default mode
+	QModeLast QueryMode = iota
 
-	// QModeLast keeps only the last value of duplicate query parameter names.
-	QModeLast
+	// QModeArray keeps all query parameters, allowing duplicates (e.g., ?x=1&x=2).
+	QModeArray
 
 	// QModeError triggers an error if duplicate query parameter names are detected.
 	QModeError
@@ -272,6 +272,16 @@ func Query(name string, value any) UrlPart {
 			return nil
 		}
 		v := fmt.Sprint(value)
+		// Check for values that may have the same name and value
+		// If the keys and values are the same as the one being added,
+		// ignore
+		if ub.qmode == QModeArray {
+			for _, kv := range ub.query {
+				if strings.EqualFold(kv.name, name) && strings.EqualFold(kv.value, v) {
+					continue
+				}
+			}
+		}
 		ub.query = append(ub.query, query{name: name, value: v})
 		return nil
 	}

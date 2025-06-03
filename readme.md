@@ -7,8 +7,8 @@
 - Compose URLs using functional options (`UrlPart`)
 - Support for basic auth credentials
 - Support for query deduplication modes:
+  - `QModeLast`: keep only the last value for duplicate names. This is the default mode.
   - `QModeArray`: keep all query parameters (duplicates allowed)
-  - `QModeLast`: keep only the last value for duplicate names
   - `QModeError`: fail on duplicate query names
 - Cloneable URL builders
 - Minimal allocations (optimized with `strings.Builder`)
