@@ -59,8 +59,11 @@ func TestSingle(t *testing.T) {
 	// ub10 := NewUrlWithPath("http://localhost:3000", "", Path("/grpperm/"))
 	// t.Logf("Host with scheme and port and blank first path: %s", ub10.Build())
 
-	ub11 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"), Sch("http"))
-	t.Logf("Host with scheme and port and blank first path: %s", ub11.Build())
+	// ub11 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"), Sch("http"))
+	// t.Logf("Host with scheme and port and blank first path: %s", ub11.Build())
+
+	ub12 := NewUrlWithPath("http://localhost:3000/", "", Path("/grpperm/"), Sch("http"))
+	t.Logf("Host with scheme and port and blank first path: %s", ub12.Build())
 }
 
 func TestQueryStringBuild(t *testing.T) {

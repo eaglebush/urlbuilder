@@ -132,6 +132,12 @@ func (ub *UrlBuilder) getHostParts(host string) {
 		// If it has a path, it is not a pure host, flag false
 		if r.Path != "" && r.Host != "" {
 			path = r.Path
+
+			// If path is just a /, remove it
+			if path == "/" {
+				path = ""
+			}
+
 			// Remove the last path that has no /. It's considered a key in REST
 			if !strings.HasSuffix(path, "/") {
 				if idx := strings.LastIndex(path, "/"); idx != -1 {
