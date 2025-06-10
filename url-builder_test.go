@@ -62,8 +62,11 @@ func TestSingle(t *testing.T) {
 	// ub11 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"), Sch("http"))
 	// t.Logf("Host with scheme and port and blank first path: %s", ub11.Build())
 
-	ub12 := NewUrlWithPath("http://localhost:3000/", "", Path("/grpperm/"), Sch("http"))
-	t.Logf("Host with scheme and port and blank first path: %s", ub12.Build())
+	// ub12 := NewUrlWithPath("http://localhost:3000/", "", Path("/grpperm/"), Sch("http"))
+	// t.Logf("Host with scheme and port and blank first path: %s", ub12.Build())
+
+	ub13 := NewUrl("https://appcore-test.vdimdci.com.ph/api", Path("user"), Path("info"), Query("userid", "zaldy.baguinon"))
+	t.Logf("Host with scheme and port and blank first path: %s", ub13.Build())
 }
 
 func TestQueryStringBuild(t *testing.T) {

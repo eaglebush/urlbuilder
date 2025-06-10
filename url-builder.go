@@ -103,8 +103,8 @@ func NewUrlWithID(host, path string, id any, part ...UrlPart) *UrlBuilder {
 
 func (ub *UrlBuilder) getHostParts(host string) {
 	var (
-		scheme, path string
-		port         int
+		scheme, path, id string
+		port             int
 	)
 
 	host = strings.ReplaceAll(host, "\"", "/")
@@ -141,7 +141,8 @@ func (ub *UrlBuilder) getHostParts(host string) {
 			// Remove the last path that has no /. It's considered a key in REST
 			if !strings.HasSuffix(path, "/") {
 				if idx := strings.LastIndex(path, "/"); idx != -1 {
-					path = path[:idx+1]
+					id = path[idx+1:]
+					path = path[:idx]
 				}
 			}
 		}
@@ -163,6 +164,7 @@ func (ub *UrlBuilder) getHostParts(host string) {
 	if path != "" {
 		ub.path = append(ub.path, path)
 	}
+	ub.id = id
 }
 
 // Clone returns a new UrlBuilder copied from an existing one and applies additional UrlParts.
