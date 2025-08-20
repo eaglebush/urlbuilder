@@ -457,14 +457,17 @@ func (ub *UrlBuilder) Build() string {
 	}
 
 	pathAppended := false
+	hasTrailingPart := false
 	if ub.id != "" {
 		b.WriteByte('/')
 		b.WriteString(ub.id)
+		hasTrailingPart = true
 		pathAppended = true
 	}
 
 	if len(ub.query) > 0 {
 		if b.Len() > 0 && ub.id == "" && b.String()[b.Len()-1] != '/' {
+			hasTrailingPart = true
 			b.WriteByte('/')
 		}
 		b.WriteByte('?')
@@ -504,10 +507,11 @@ func (ub *UrlBuilder) Build() string {
 	if ub.fragment != "" {
 		b.WriteByte('#')
 		b.WriteString(ub.fragment)
+		hasTrailingPart = true
 		pathAppended = true
 	}
 
-	if !pathAppended {
+	if !pathAppended && hasTrailingPart {
 		b.WriteByte('/')
 	}
 
