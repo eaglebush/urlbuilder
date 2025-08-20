@@ -44,7 +44,7 @@ func TestBuild(t *testing.T) {
 	ub9 := New(Host("https://www.facebook.com:1500/ui/from/u"), Path("ever"), Query("open", 1), ID(324))
 	t.Logf("Literal host: %s", ub9.Build())
 
-	ub10 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"))
+	ub10 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"), Path("/"))
 	t.Logf("Host with port and blank first path: %s", ub10.Build())
 
 }

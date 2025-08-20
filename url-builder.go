@@ -301,99 +301,6 @@ func Frag(f string) UrlPart {
 }
 
 // Build constructs the URL as a string. Returns an empty string if an error occurred.
-// func (ub *UrlBuilder) Build2() string {
-// 	if ub.scheme == "" {
-// 		ub.scheme = "https"
-// 	}
-// 	ub.scheme = strings.ToLower(ub.scheme)
-
-// 	// Host: Change slashes and sanitize
-// 	if ub.host == "" {
-// 		ub.host = "localhost"
-// 	}
-// 	ub.host = strings.ReplaceAll(ub.host, "\"", "/")
-// 	ub.host, _ = strings.CutSuffix(ub.host, "/")
-
-// 	if ub.port == 0 {
-// 		switch ub.scheme {
-// 		case "https":
-// 			ub.port = 443
-// 		case "http":
-// 			ub.port = 80
-// 		}
-// 	}
-
-// 	url := ub.scheme + "://"
-
-// 	if ub.user != "" {
-// 		auth := ub.user
-// 		if ub.password != "" {
-// 			auth += ":" + ub.password
-// 		}
-// 		url += auth + "@"
-// 	}
-// 	url += ub.host
-// 	if ub.port != 80 {
-// 		url += ":" + strconv.Itoa(int(ub.port))
-// 	}
-
-// 	if len(ub.path) > 0 {
-// 		paths := make([]string, len(ub.path))
-// 		copy(paths, ub.path)
-// 		for i := range paths {
-// 			paths[i] = strings.ReplaceAll(paths[i], "\"", "/")
-// 			paths[i], _ = strings.CutPrefix(paths[i], "/")
-// 			paths[i], _ = strings.CutSuffix(paths[i], "/")
-// 		}
-// 		url += "/" + strings.Join(paths, "/")
-// 	}
-
-// 	pathAppended := false
-// 	if ub.id != "" {
-// 		url += "/" + ub.id
-// 		pathAppended = true
-// 	}
-
-// 	if len(ub.query) > 0 {
-// 		if !strings.HasSuffix(url, "/") && ub.id == "" {
-// 			url += "/"
-// 		}
-// 		queryParams := []string{}
-// 		if ub.qmode == QModeLast || ub.qmode == QModeError {
-// 			qmap := make(map[string]string)
-// 			for _, q := range ub.query {
-// 				if _, found := qmap[q.name]; found && ub.qmode == QModeError {
-// 					ub.err = fmt.Errorf("duplicate query name found")
-// 					return ""
-// 				}
-// 				qmap[q.name] = q.value
-// 			}
-// 			for k, v := range qmap {
-// 				queryParams = append(queryParams, k+"="+escape(v))
-// 			}
-// 		}
-// 		if ub.qmode == QModeArray {
-// 			for _, q := range ub.query {
-// 				queryParams = append(queryParams, q.name+"="+escape(q.value))
-// 			}
-// 		}
-// 		url += "?" + strings.Join(queryParams, "&")
-// 		pathAppended = true
-// 	}
-
-// 	if ub.fragment != "" {
-// 		url += "#" + ub.fragment
-// 		pathAppended = true
-// 	}
-
-// 	if !pathAppended {
-// 		url += "/"
-// 	}
-
-// 	return url
-// }
-
-// Build constructs the URL as a string. Returns an empty string if an error occurred.
 func (ub *UrlBuilder) Build() string {
 	if ub.scheme == "" {
 		ub.scheme = "https"
@@ -450,20 +357,12 @@ func (ub *UrlBuilder) Build() string {
 		}
 	}
 
-	pathAppended := false
-	hasTrailingPart := false
 	if ub.id != "" {
 		b.WriteByte('/')
 		b.WriteString(ub.id)
-		hasTrailingPart = true
-		pathAppended = true
 	}
 
 	if len(ub.query) > 0 {
-		if b.Len() > 0 && ub.id == "" && b.String()[b.Len()-1] != '/' {
-			hasTrailingPart = true
-			b.WriteByte('/')
-		}
 		b.WriteByte('?')
 
 		first := true
@@ -495,18 +394,11 @@ func (ub *UrlBuilder) Build() string {
 				b.WriteString(url.QueryEscape(q.value))
 			}
 		}
-		pathAppended = true
 	}
 
 	if ub.fragment != "" {
 		b.WriteByte('#')
 		b.WriteString(ub.fragment)
-		hasTrailingPart = true
-		pathAppended = true
-	}
-
-	if !pathAppended && hasTrailingPart {
-		b.WriteByte('/')
 	}
 
 	return b.String()
