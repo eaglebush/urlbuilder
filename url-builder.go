@@ -385,6 +385,7 @@ func (ub *UrlBuilder) Build() string {
 		// because it shouldn't be terminated with slash
 		if !pathTerminated {
 			b.WriteByte('/')
+			pathTerminated = true
 		}
 		b.WriteString(ub.id)
 	}
