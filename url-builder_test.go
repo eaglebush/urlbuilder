@@ -3,7 +3,9 @@ package urlbuilder
 import "testing"
 
 func TestBuild(t *testing.T) {
+
 	ub := New(Port(5666))
+	ub.EndPathWithSlash(true)
 	t.Logf("No host: %s", ub.Build())
 
 	ub0 := New(Host("localhost.com"), Port(5666))
@@ -21,7 +23,8 @@ func TestBuild(t *testing.T) {
 	ub3 := Clone(ub0, Path("retrieve"), ID("key1"), Query("un", "zaldybaguinon"), Query("work", "ISD Manager"), UsrPwd("admin", "fantastic4"))
 	t.Logf("With user, password, path and key: %s", ub3.Build())
 
-	ub4 := NewUrlWithPath("localhost", "/path")
+	ub4 := NewUrlWithPath("localhost", "/path", EndPathWithSlash(true))
+	//ub4.EndPathWithSlash(true)
 	t.Logf("New Simple Url: %s", ub4.Build())
 
 	ub5 := NewUrlWithID("localhost", "/path/", "12345", Path("udoms"))
@@ -39,12 +42,13 @@ func TestBuild(t *testing.T) {
 	ub8 := New(Host("localhost"), ID(12345))
 	t.Logf("Host plus key: %s", ub8.Build())
 
+	ub8.EndPathWithSlash(true)
 	t.Logf("Inline clone build: %s", ub8.Clone(Query("yes", "no")).Build())
 
 	ub9 := New(Host("https://www.facebook.com:1500/ui/from/u"), Path("ever"), Query("open", 1), ID(324))
 	t.Logf("Literal host: %s", ub9.Build())
 
-	ub10 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"), Path("/"))
+	ub10 := NewUrlWithPath("localhost:3000", "", Path("/grpperm/"), EndPathWithSlash(true), Path("/"))
 	t.Logf("Host with port and blank first path: %s", ub10.Build())
 
 }

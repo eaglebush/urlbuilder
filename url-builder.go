@@ -37,17 +37,18 @@ type (
 
 	// UrlBuilder holds components of a URL and provides methods to construct it.
 	UrlBuilder struct {
-		path     []string
-		scheme   string
-		host     string
-		user     string
-		password string
-		id       string
-		fragment string
-		port     uint
-		query    []query
-		qmode    QueryMode
-		err      error
+		path             []string
+		scheme           string
+		host             string
+		user             string
+		password         string
+		id               string
+		fragment         string
+		port             uint
+		query            []query
+		qmode            QueryMode
+		err              error
+		endPathWithSlash bool
 	}
 )
 
@@ -101,10 +102,16 @@ func NewUrlWithID(host, path string, id any, part ...UrlPart) *UrlBuilder {
 	return New(up...)
 }
 
+// EndPathWithSlash will automatically append a forward slash to the Url if it
+func (ub *UrlBuilder) EndPathWithSlash(indeed bool) {
+	ub.endPathWithSlash = indeed
+}
+
 func (ub *UrlBuilder) getHostParts(host string) {
 	var (
-		scheme, path string
-		port         int
+		scheme,
+		path string
+		port int
 	)
 
 	host = strings.ReplaceAll(host, "\"", "/")
@@ -267,6 +274,14 @@ func Mode(mode QueryMode) UrlPart {
 	}
 }
 
+// EndPathWithSlash will automatically append a forward slash to the Url if it
+func EndPathWithSlash(indeed bool) UrlPart {
+	return func(ub *UrlBuilder) error {
+		ub.endPathWithSlash = indeed
+		return nil
+	}
+}
+
 // Query appends a query parameter to the URL.
 func Query(name string, value any) UrlPart {
 	return func(ub *UrlBuilder) error {
@@ -342,6 +357,8 @@ func (ub *UrlBuilder) Build() string {
 		b.WriteString(strconv.Itoa(int(ub.port)))
 	}
 
+	pathTerminated := false
+
 	if len(ub.path) > 0 {
 		for _, segment := range ub.path {
 			if segment == "" {
@@ -357,12 +374,29 @@ func (ub *UrlBuilder) Build() string {
 		}
 	}
 
+	// Will generally check if the string so far has a forward slash
+	if chkStr := b.String(); strings.HasSuffix(chkStr, "/") {
+		pathTerminated = true
+	}
+
 	if ub.id != "" {
-		b.WriteByte('/')
+		// Path termination is mandatory for ids
+		// It will not set the flag to pathTerminated to true
+		// because it shouldn't be terminated with slash
+		if !pathTerminated {
+			b.WriteByte('/')
+		}
 		b.WriteString(ub.id)
 	}
 
 	if len(ub.query) > 0 {
+		// For queries, path termination is optional
+		// If this wasn't terminated and it should be,
+		// terminate it
+		if !pathTerminated && ub.endPathWithSlash {
+			b.WriteByte('/')
+			pathTerminated = true
+		}
 		b.WriteByte('?')
 
 		first := true
@@ -397,8 +431,16 @@ func (ub *UrlBuilder) Build() string {
 	}
 
 	if ub.fragment != "" {
+		if !pathTerminated && ub.endPathWithSlash {
+			b.WriteByte('/')
+			pathTerminated = true
+		}
 		b.WriteByte('#')
 		b.WriteString(ub.fragment)
+	}
+
+	if !pathTerminated && ub.endPathWithSlash {
+		b.WriteByte('/')
 	}
 
 	return b.String()
