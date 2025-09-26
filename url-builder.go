@@ -171,6 +171,15 @@ func (ub *UrlBuilder) getHostParts(host string) {
 // Clone returns a new UrlBuilder copied from an existing one and applies additional UrlParts.
 func Clone(ub *UrlBuilder, part ...UrlPart) *UrlBuilder {
 	cloneUb := *ub
+
+	// Deep copy slices
+	if ub.path != nil {
+		cloneUb.path = append([]string(nil), ub.path...)
+	}
+	if ub.query != nil {
+		cloneUb.query = append([]query(nil), ub.query...)
+	}
+
 	for _, p := range part {
 		p(&cloneUb)
 	}
@@ -317,50 +326,52 @@ func Frag(f string) UrlPart {
 
 // Build constructs the URL as a string. Returns an empty string if an error occurred.
 func (ub *UrlBuilder) Build() string {
-	if ub.scheme == "" {
-		ub.scheme = "https"
-	}
-	ub.scheme = strings.ToLower(ub.scheme)
+	cb := *ub
 
-	if ub.host == "" {
-		ub.host = "localhost"
+	if cb.scheme == "" {
+		cb.scheme = "https"
+	}
+	cb.scheme = strings.ToLower(cb.scheme)
+
+	if cb.host == "" {
+		cb.host = "localhost"
 	}
 
-	switch ub.scheme {
+	switch cb.scheme {
 	case "https":
-		if ub.port == 0 {
-			ub.port = 443
+		if cb.port == 0 {
+			cb.port = 443
 		}
 	case "http":
-		if ub.port == 0 {
-			ub.port = 80
+		if cb.port == 0 {
+			cb.port = 80
 		}
 	}
 
 	var b strings.Builder
 
-	b.WriteString(ub.scheme)
+	b.WriteString(cb.scheme)
 	b.WriteString("://")
 
-	if ub.user != "" {
-		b.WriteString(ub.user)
-		if ub.password != "" {
+	if cb.user != "" {
+		b.WriteString(cb.user)
+		if cb.password != "" {
 			b.WriteByte(':')
-			b.WriteString(ub.password)
+			b.WriteString(cb.password)
 		}
 		b.WriteByte('@')
 	}
 
-	b.WriteString(ub.host)
-	if !((ub.scheme == "http" && ub.port == 80) || (ub.scheme == "https" && ub.port == 443)) {
+	b.WriteString(cb.host)
+	if !((cb.scheme == "http" && cb.port == 80) || (cb.scheme == "https" && cb.port == 443)) {
 		b.WriteByte(':')
-		b.WriteString(strconv.Itoa(int(ub.port)))
+		b.WriteString(strconv.Itoa(int(cb.port)))
 	}
 
 	pathTerminated := false
 
-	if len(ub.path) > 0 {
-		for _, segment := range ub.path {
+	if len(cb.path) > 0 {
+		for _, segment := range cb.path {
 			if segment == "" {
 				continue
 			}
@@ -379,7 +390,7 @@ func (ub *UrlBuilder) Build() string {
 		pathTerminated = true
 	}
 
-	if ub.id != "" {
+	if cb.id != "" {
 		// Path termination is mandatory for ids
 		// It will not set the flag to pathTerminated to true
 		// because it shouldn't be terminated with slash
@@ -387,24 +398,24 @@ func (ub *UrlBuilder) Build() string {
 			b.WriteByte('/')
 			pathTerminated = true
 		}
-		b.WriteString(ub.id)
+		b.WriteString(cb.id)
 	}
 
-	if len(ub.query) > 0 {
+	if len(cb.query) > 0 {
 		// For queries, path termination is optional
 		// If this wasn't terminated and it should be,
 		// terminate it
-		if !pathTerminated && ub.endPathWithSlash {
+		if !pathTerminated && cb.endPathWithSlash {
 			b.WriteByte('/')
 			pathTerminated = true
 		}
 		b.WriteByte('?')
 
 		first := true
-		if ub.qmode == QModeLast || ub.qmode == QModeError {
+		if cb.qmode == QModeLast || cb.qmode == QModeError {
 			qmap := make(map[string]string)
-			for _, q := range ub.query {
-				if _, found := qmap[q.name]; found && ub.qmode == QModeError {
+			for _, q := range cb.query {
+				if _, found := qmap[q.name]; found && cb.qmode == QModeError {
 					ub.err = fmt.Errorf("duplicate query name found")
 					return ""
 				}
@@ -420,7 +431,7 @@ func (ub *UrlBuilder) Build() string {
 				b.WriteString(url.QueryEscape(v))
 			}
 		} else {
-			for i, q := range ub.query {
+			for i, q := range cb.query {
 				if i > 0 {
 					b.WriteByte('&')
 				}
@@ -431,20 +442,29 @@ func (ub *UrlBuilder) Build() string {
 		}
 	}
 
-	if ub.fragment != "" {
-		if !pathTerminated && ub.endPathWithSlash {
+	if cb.fragment != "" {
+		if !pathTerminated && cb.endPathWithSlash {
 			b.WriteByte('/')
 			pathTerminated = true
 		}
 		b.WriteByte('#')
-		b.WriteString(ub.fragment)
+		b.WriteString(cb.fragment)
 	}
 
-	if !pathTerminated && ub.endPathWithSlash {
+	if !pathTerminated && cb.endPathWithSlash {
 		b.WriteByte('/')
 	}
 
 	return b.String()
+}
+
+// BuildSafe constructs the URL and returns it with an error, if any.
+func (ub *UrlBuilder) BuildSafe() (string, error) {
+	s := ub.Build()
+	if ub.err != nil {
+		return "", ub.err
+	}
+	return s, nil
 }
 
 // Clone creates a new UrlBuilder from the current one and applies optional UrlParts.
